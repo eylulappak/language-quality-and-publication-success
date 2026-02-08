@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment folders
+.venv/
+env/
+
+# Cluster / Slurm outputs
+slurm-*.out
+
+# Cache folders
+*.cache
+.cache/
+
+# Large generated files
+*.json
+*.pdf
+
+# Model or GPU build artifacts
+flashinfer*
+batch_prefill*
