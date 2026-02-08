@@ -1,32 +1,51 @@
-# Python cache
-__pycache__/
-*.pyc
+# ======================
+# Never commit cluster junk
+# ======================
+
+# Conda / environments
+miniconda3/
+.conda/
+.conda_envs/
+envs/
+venvs/
+python310/
+
+# HuggingFace + transformers cache
+hf_cache/
+hf_home/
+hf_models/
+
+# Triton / GPU cache
+.triton/
+
+# Python build tarballs
+Python-*.tgz
+Python-*/
+
+# Large datasets
+s2orc/
+acl_paper_pdfs/
+arxiv_embeddings/
+arxiv_embeddings_batches/
+specter_vectors/
+metadata/
+
+# Outputs / experiments
+perplexities/
+readability/
+plots/
+prediction_scripts/
+citation_counts_batches/
+language_ids/
+
+# Temporary stuff
+tmp/
+ziYxqrXm
 
 # Logs
 *.log
-
-# Temporary files
-*.tmp
-*.swp
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Environment folders
-.venv/
-env/
-
-# Cluster / Slurm outputs
 slurm-*.out
 
-# Cache folders
-*.cache
-.cache/
-
-# Large generated files
-*.json
-*.pdf
-
-# Model or GPU build artifacts
-flashinfer*
-batch_prefill*
+# Bytecode
+__pycache__/
+*.pyc
