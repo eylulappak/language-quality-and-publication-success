@@ -21,45 +21,12 @@ thesis/thesis.pdf
 ```
 language-quality-and-publication-success/
 │
-├── thesis/                          # Thesis PDF
-│
-├── data/                            # All datasets (see below)
-│   ├── full_arxiv_before_sampling.csv
-│   ├── 90k_arxiv_metadata_from_semantic_scholar.csv
-│   ├── 90k_arxiv_citation_prediction_full.csv
-│   ├── 90k_arxiv_doi_prediction_full.csv
-│   ├── 200-paper-benchmark_validation_of_linguistic_features.csv
-│   ├── 90k_arxiv_citation_prediction_splits/
-│   │   ├── 90k_arxiv_citation_prediction_train.csv
-│   │   ├── 90k_arxiv_citation_prediction_val.csv
-│   │   └── 90k_arxiv_citation_prediction_test.csv
-│   ├── 90k_arxiv_doi_prediction_splits/
-│   │   ├── 90k_arxiv_doi_prediction_train.csv
-│   │   ├── 90k_arxiv_doi_prediction_val.csv
-│   │   └── 90k_arxiv_doi_prediction_test.csv
-│   └── 200-paper-benchmark/         # 200 papers used for zero-shot prompting and feature validation
-│       ├── dev/
-│       │   ├── native-like/         # 50 native-like papers (json, txt, grammar, qwen outputs)
-│       │   └── non-native-like/     # 50 non-native-like papers
-│       └── test/
-│           ├── native-like/         # 50 native-like papers (2 batches)
-│           └── non-native-like/     # 50 non-native-like papers (2 batches)
-│
-├── code/                            # All source code (see below)
-│   ├── 01_data_collection/
-│   ├── 02_feature_extraction/
-│   ├── 03_validation_of_language_quality_features/
-│   ├── 04_preprocessing/
-│   ├── 05_exploratory_and_correlation_analysis/
-│   ├── 06_model_selection/
-│   ├── 07_models/
-│   ├── 08_analysis/
-│   └── 09_cluster_jobs/
-│
-├── results/                         # Generated outputs (plots, CSVs)
-│
-├── README.md                        # This file
-└── HANDBOOK.pdf               # Step-by-step execution instructions
+├── thesis/          # Thesis PDF and source files
+├── data/            # Datasets used in the thesis
+├── code/            # Source code
+├── results/         # Experimental results and generated outputs
+├── README.md
+└── HANDBOOK.pdf
 ```
 
 ---
