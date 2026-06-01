@@ -13,8 +13,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def parse_args():
     p = argparse.ArgumentParser(description="Compute GPT-2 perplexity for abstracts using Slurm array shards.")
-    p.add_argument("--input_csv", default="/mnt/beegfs/work/appak/arxiv_90k_full_joined_ss_final.csv")
-    p.add_argument("--output_dir", default="/mnt/beegfs/work/appak/abstract_gpt2_ppl_outputs_50shards")
+    p.add_argument("--input_csv", default="data\\90k_arxiv_metadata_from_semantic_scholar.csv")
+    p.add_argument("--output_dir", default="data\\abstract_gpt2_ppl_outputs_50shards")
     p.add_argument("--model_name", default="openai-community/gpt2")
     p.add_argument("--chunk_size", type=int, default=None)
     p.add_argument("--max_length", type=int, default=None)

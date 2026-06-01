@@ -2,7 +2,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
 
-CITATION_CSV = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/arxiv_90k_citation_prediction_merged.csv"
+CITATION_CSV = "data/90k_arxiv_citation_prediction_full.csv"
 
 citation_df = pd.read_csv(CITATION_CSV, dtype={"arxiv_id": str})
 
@@ -27,9 +27,9 @@ train_df, val_df = train_test_split(
     random_state=42
 )
 
-output_dir = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits"
+output_dir = "data/90k_arxiv_citation_prediction_splits"
 os.makedirs(output_dir, exist_ok=True)
 
-train_df.to_csv(f"{output_dir}/arxiv_90k_citation_prediction_train.csv", index=False)
-val_df.to_csv(f"{output_dir}/arxiv_90k_citation_prediction_val.csv", index=False)
-test_df.to_csv(f"{output_dir}/arxiv_90k_citation_prediction_test.csv", index=False)
+train_df.to_csv(f"{output_dir}/90k_arxiv_citation_prediction_train.csv", index=False)
+val_df.to_csv(f"{output_dir}/90k_arxiv_citation_prediction_val.csv", index=False)
+test_df.to_csv(f"{output_dir}/90k_arxiv_citation_prediction_test.csv", index=False)

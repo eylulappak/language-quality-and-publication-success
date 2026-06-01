@@ -21,11 +21,11 @@ except ImportError:
 # Paths and settings
 # ============================================================
 
-CITATION_INPUT_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/arxiv_90k_citation_prediction_merged.csv"
+CITATION_INPUT_PATH = "data/90k_arxiv_citation_prediction_full.csv"
 
-DOI_INPUT_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/arxiv_90k_doi_prediction_merged.csv"
+DOI_INPUT_PATH = "data/90k_arxiv_doi_prediction_full.csv"
 
-OUTPUT_DIR = Path("eda_publication_success_outputs_7")
+OUTPUT_DIR = Path("results/eda_publication_success_outputs")
 
 CITATION_THRESHOLD = 5
 

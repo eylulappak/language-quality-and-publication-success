@@ -45,9 +45,9 @@ def clean_lgbm_feature_names(columns):
 
     return cleaned
 
-TRAIN_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_train.csv"
-VAL_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_val.csv"
-TEST_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_test.csv"
+TRAIN_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_train.csv"
+VAL_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_val.csv"
+TEST_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_test.csv"
 
 
 train_df = pd.read_csv(TRAIN_PATH, low_memory=False, dtype={"arxiv_id": str})

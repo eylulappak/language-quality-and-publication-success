@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from transformers import AutoTokenizer
 
-HOME = "/mnt/beegfs/work/appak"
+HOME = os.path.expanduser("~")
 os.environ.setdefault("HOME", HOME)
 os.environ.setdefault("XDG_CACHE_HOME", f"{HOME}/.cache")
 os.environ.setdefault("HF_HOME", f"{HOME}/.cache/huggingface")
@@ -401,7 +401,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out_dir", required=True)
     ap.add_argument("--overwrite", action="store_true")
-    ap.add_argument("--model_path", default="/mnt/beegfs/work/appak/hf_models/Qwen2.5-14B-Instruct-AWQ")
+    ap.add_argument("--model_path", default="Qwen/Qwen2.5-14B-Instruct-AWQ")
     ap.add_argument("--max_chars", type=int, default=40000)
     ap.add_argument("--max_new_tokens", type=int, default=256)
     ap.add_argument("--temperature", type=float, default=0.0)

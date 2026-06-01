@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd 
 
-DOI_CSV = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/arxiv_90k_doi_prediction_merged.csv"
+DOI_CSV = "data/90k_arxiv_doi_prediction_full.csv"
 doi_df = pd.read_csv(DOI_CSV, dtype={"arxiv_id": str})
 
 train_val_df, test_df = train_test_split(
@@ -18,6 +18,8 @@ train_df, val_df = train_test_split(
     random_state=42
 )
 
-pd.DataFrame(train_df).to_csv("/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_train.csv", index=False)
-pd.DataFrame(val_df).to_csv("/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_val.csv", index=False)
-pd.DataFrame(test_df).to_csv("/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_test.csv", index=False)
+import os
+os.makedirs("data/90k_arxiv_doi_prediction_splits", exist_ok=True)
+pd.DataFrame(train_df).to_csv("data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_train.csv", index=False)
+pd.DataFrame(val_df).to_csv("data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_val.csv", index=False)
+pd.DataFrame(test_df).to_csv("data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_test.csv", index=False)

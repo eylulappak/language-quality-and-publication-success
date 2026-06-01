@@ -7,8 +7,8 @@ from pathlib import Path
 # =========================
 # Configuration
 # =========================
-INPUT_CSV = "/mnt/beegfs/work/appak/arxiv_metadata_joined.csv"
-OUT_SAMPLE = "/mnt/beegfs/work/appak/arxiv_metadata_joined_stratified_100k.csv"
+INPUT_CSV = "data\\full_arxiv_before_sampling.csv"
+OUT_SAMPLE = "data\\arxiv_metadata_stratified_90k.csv"
 
 RANDOM_SEED = 42
 
@@ -25,7 +25,7 @@ TOP10_CATEGORIES = [
     "Biology",
 ]
 
-SAMPLE_SIZE = 100_000
+SAMPLE_SIZE = 90_000
 SAMPLE_PER_DOI = SAMPLE_SIZE // 2
 
 # Requested number of quantile bins before duplicate-edge cleanup

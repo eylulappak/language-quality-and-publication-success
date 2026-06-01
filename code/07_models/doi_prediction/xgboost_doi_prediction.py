@@ -17,9 +17,9 @@ from sklearn.metrics import (
 from xgboost import XGBClassifier
 
 
-TRAIN_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_train.csv"
-VAL_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_val.csv"
-TEST_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_test.csv"
+TRAIN_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_train.csv"
+VAL_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_val.csv"
+TEST_PATH = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_test.csv"
 
 
 target_col = "has_doi"

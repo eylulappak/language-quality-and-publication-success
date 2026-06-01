@@ -14,11 +14,10 @@ from scipy.stats import mannwhitneyu
 # ============================================================
 
 INPUT_CSV = (
-    "/mnt/beegfs/work/appak/200-paper-benchmark/"
-    "merged_linguistic_features.csv"
+    "data\\200-paper-benchmark_validation_of_linguistic_features.csv"
 )
 
-OUTPUT_DIR = Path("/mnt/beegfs/work/appak/200-paper-benchmark/linguistic_feature_boxplots")
+OUTPUT_DIR = Path("data\\200-paper-benchmark\\linguistic_feature_boxplots")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 STATS_OUTPUT_CSV = OUTPUT_DIR / "mannwhitney_rank_biserial_results.csv"

@@ -10,9 +10,9 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_sco
 from xgboost import XGBClassifier
 
 
-TRAIN_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_citation_prediction_train.csv"
-VAL_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_citation_prediction_val.csv"
-TEST_PATH = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_citation_prediction_test.csv"
+TRAIN_PATH = "data/90k_arxiv_citation_prediction_splits/90k_arxiv_citation_prediction_train.csv"
+VAL_PATH = "data/90k_arxiv_citation_prediction_splits/90k_arxiv_citation_prediction_val.csv"
+TEST_PATH = "data/90k_arxiv_citation_prediction_splits/90k_arxiv_citation_prediction_test.csv"
 
 THRESHOLD = 5
 OUTPUT_PATH = f"ablation_citation_gt_{THRESHOLD}_results_xgboost.csv"

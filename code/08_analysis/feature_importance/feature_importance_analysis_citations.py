@@ -6,7 +6,7 @@ from pathlib import Path
 # 1. Output directory
 # ============================================================
 
-OUTPUT_DIR = Path("/mnt/beegfs/work/appak/final_pipeline/new_scripts/feature_importance_plots")
+OUTPUT_DIR = Path("results/feature_importance_plots")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

@@ -4,11 +4,9 @@ import os
 import pandas as pd
 import numpy as np
 from readability import Readability
-import nltk
-nltk.data.path.insert(0, "/mnt/beegfs/work/appak/nltk_data")
 
-INPUT_PATH = "/mnt/beegfs/work/appak/arxiv_90k_full_joined_ss_final_with_author_features_abstract_ppl.csv"
-OUT_DIR = "/mnt/beegfs/work/appak/abstract_readability_50_shards"
+INPUT_PATH = "data\\90k_arxiv_metadata_from_semantic_scholar.csv"
+OUT_DIR = "data\\abstract_readability_50_shards"
 
 TEXT_COL = "abstract"
 N_SHARDS = 50
@@ -21,7 +19,6 @@ READABILITY_METRICS = [
     "dale_chall",
     "ari",
     "linsear_write",
-    "smog",
 ]
 
 def safe_score(text):

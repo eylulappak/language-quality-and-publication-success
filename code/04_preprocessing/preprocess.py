@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 
 
-INPUT_PATH = "/mnt/beegfs/work/appak/arxiv_90k_full_joined_ss_final.csv"
+INPUT_PATH = "data/90k_arxiv_citation_prediction_full.csv"
 
-OUT_DIR = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers"
+OUT_DIR = "data/preprocessed_90k_classifiers"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 CITATION_RAW_OUT = os.path.join(

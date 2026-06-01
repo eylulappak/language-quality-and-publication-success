@@ -18,8 +18,8 @@ from readability import Readability
 # Config
 # -----------------------------
 
-DEFAULT_INPUT_DIR = ""
-DEFAULT_OUTPUT_CSV = ""
+DEFAULT_INPUT_DIR = "data\\arxiv_papers"
+DEFAULT_OUTPUT_CSV = "data\\arxiv_papers_readability.csv"
 DEFAULT_CHUNK_SIZE = 20
 
 PERCENTILES = [10, 25, 50, 75, 90]
@@ -32,7 +32,6 @@ METRICS = [
     "dale_chall",
     "ari",
     "linsear_write",
-    "smog",
 ]
 
 

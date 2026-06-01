@@ -14,10 +14,10 @@ from xgboost import XGBClassifier
 warnings.filterwarnings("ignore")
 
 
-TRAIN_CSV = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_train.csv"
-VAL_CSV = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/new_splits/arxiv_90k_doi_prediction_val.csv"
+TRAIN_CSV = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_train.csv"
+VAL_CSV = "data/90k_arxiv_doi_prediction_splits/90k_arxiv_doi_prediction_val.csv"
 
-OUTPUT_DIR = "/mnt/beegfs/work/appak/final_pipeline/preprocessed_90k_classifiers/model_selection"
+OUTPUT_DIR = "results/model_selection"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 train_df = pd.read_csv(TRAIN_CSV, dtype={"arxiv_id": str})
