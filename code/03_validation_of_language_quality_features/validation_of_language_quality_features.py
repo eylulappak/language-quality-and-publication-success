@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Validates language quality features on the 200-paper benchmark using Mann-Whitney U tests
+and rank-biserial correlations. Verifies that each feature (perplexity, readability scores,
+grammar error rate) differs significantly between native-like and non-native-like papers.
+Input:  data/200-paper-benchmark_validation_of_linguistic_features.csv
+Output: boxplot PNGs and results CSV in data/200-paper-benchmark/linguistic_feature_boxplots/
+"""
 
 import re
 from pathlib import Path
@@ -14,10 +21,10 @@ from scipy.stats import mannwhitneyu
 # ============================================================
 
 INPUT_CSV = (
-    "data\\200-paper-benchmark_validation_of_linguistic_features.csv"
+    "data/200-paper-benchmark_validation_of_linguistic_features.csv"
 )
 
-OUTPUT_DIR = Path("data\\200-paper-benchmark\\linguistic_feature_boxplots")
+OUTPUT_DIR = Path("data/200-paper-benchmark/linguistic_feature_boxplots")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 STATS_OUTPUT_CSV = OUTPUT_DIR / "mannwhitney_rank_biserial_results.csv"
@@ -93,6 +100,7 @@ label_map = {
     "Non-Native-Like": "Non-Native-Like",
 }
 
+# fillna fallback retains any unlisted raw value rather than silently dropping rows
 df["group_label"] = df[TARGET_COLUMN].map(label_map).fillna(df[TARGET_COLUMN])
 
 group_order = ["Native-Like", "Non-Native-Like"]
@@ -120,11 +128,13 @@ for feature in FEATURE_COLUMNS:
     x = data.loc[data["group_label"] == group_1, feature]
     y = data.loc[data["group_label"] == group_2, feature]
 
+    # two-sided test because we have no prior hypothesis about which group scores higher on every metric
     u_stat, p_value = mannwhitneyu(x, y, alternative="two-sided")
 
     n1 = len(x)
     n2 = len(y)
 
+    # Rank-biserial correlation is a non-parametric effect size bounded [-1, 1]; it is more interpretable than the raw U statistic
     rank_biserial = (2 * u_stat) / (n1 * n2) - 1
 
     stats_results.append({
@@ -172,6 +182,7 @@ for feature in FEATURE_COLUMNS:
 
     plt.figure(figsize=(10, 6))
 
+    # showfliers=False because individual outliers clutter the visual comparison across only two groups
     plt.boxplot(
         values,
         labels=groups,

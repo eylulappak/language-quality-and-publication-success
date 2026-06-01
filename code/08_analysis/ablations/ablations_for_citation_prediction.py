@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+Systematic ablation study for citation count prediction (XGBoost, threshold 5).
+Tests 25 configurations: full model (M0), seven main-group removal ablations (M1-M7),
+seven single-group-only models (M8-M14), five linguistic subgroup removals (M15-M19),
+and five linguistic subgroup-only models (M20-M24). Reports delta ROC-AUC and delta
+balanced accuracy vs the full model.
+Input:  data/90k_arxiv_citation_prediction_splits/
+Output: ablation_citation_gt_5_results_xgboost.csv
+"""
 
 import re
 import numpy as np
@@ -165,6 +174,7 @@ main_groups = [
     "linguistic_quality",
 ]
 
+# combine_groups deduplicates so features shared between groups are not double-counted
 full_features = combine_groups(main_groups)
 
 
@@ -329,6 +339,7 @@ for model_name, selected_features in ablation_configs.items():
         early_stopping_rounds=50,
     )
 
+    # verbose=False suppresses per-round logging since 25 models already produce a lot of output
     model.fit(
         X_train_scaled,
         y_train,
@@ -373,6 +384,7 @@ full_bal_acc = results_df.loc[
     "balanced_accuracy"
 ].iloc[0]
 
+# Negative delta means the ablation model is worse than the full model — shows the contribution of the removed group
 results_df["delta_roc_auc_vs_full"] = results_df["roc_auc"] - full_auc
 results_df["delta_bal_acc_vs_full"] = results_df["balanced_accuracy"] - full_bal_acc
 

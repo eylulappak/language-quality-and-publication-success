@@ -1,3 +1,10 @@
+"""
+Analyses feature importance for DOI prediction across five sources (XGBoost gain/split,
+LightGBM gain/split, logistic regression). Same rank-weighted methodology as the citation
+version but with DOI-specific feature lists and without publication/indexing metadata
+(excluded to prevent DOI leakage). Hardcoded top-30 lists are from prior model runs.
+Output: results/feature_importance_plots/
+"""
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -267,7 +274,7 @@ for source, features in sources.items():
     n = len(features)
 
     for rank, feature in enumerate(features, start=1):
-        # Rank-based score: top-ranked feature gets 30, last gets 1
+        # rank_score = n+1−rank so the top feature gets the highest score (e.g. 30 for a 30-item list)
         rank_score = n - rank + 1
 
         rows.append({
@@ -323,6 +330,7 @@ linguistic_order = [
 # 4. Main feature group plot: max-score method
 # ============================================================
 
+# max-rank-score aggregation: each group's score = the rank of its single best feature, making groups comparable regardless of size
 main_max_scores = (
     df[df["main_group"].isin(main_group_order)]
     .groupby(["main_group", "source"])["rank_score"]
@@ -403,6 +411,7 @@ print(f"Saved DOI linguistic max-score plot:\n{ling_plot_path}")
 # 6. Rank + frequency summaries
 # ============================================================
 
+# Sort by frequency first so features appearing in all 5 sources float to the top regardless of rank
 feature_summary = (
     df.groupby("feature")
       .agg(

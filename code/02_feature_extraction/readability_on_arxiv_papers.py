@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Computes readability metrics for full paper TXT files by splitting each paper into
+20-sentence chunks (configurable). Metrics are aggregated across chunks (mean, std,
+percentiles) to produce per-paper scores. Supports sharded processing.
+Chunks shorter than 100 words are skipped because readability formulas require a
+minimum text length to produce reliable scores.
+Input:  paper TXT files via --input_dir (not included in submission)
+Output: CSV via --output_csv
+"""
 
 from __future__ import annotations
 
@@ -18,8 +27,8 @@ from readability import Readability
 # Config
 # -----------------------------
 
-DEFAULT_INPUT_DIR = "data\\arxiv_papers"
-DEFAULT_OUTPUT_CSV = "data\\arxiv_papers_readability.csv"
+DEFAULT_INPUT_DIR = "data/arxiv_papers"
+DEFAULT_OUTPUT_CSV = "data/arxiv_papers_readability.csv"
 DEFAULT_CHUNK_SIZE = 20
 
 PERCENTILES = [10, 25, 50, 75, 90]
@@ -41,6 +50,7 @@ METRICS = [
 
 def normalize_text(text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
+    # Re-join PDF hyphenated line-breaks (e.g., "recog-\nnize" → "recognize") before sentence splitting
     text = re.sub(r"(\w)-\n(\w)", r"\1\2", text)
     text = re.sub(r"\n+", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -48,6 +58,7 @@ def normalize_text(text: str) -> str:
 
 
 def split_into_sentences(text: str) -> List[str]:
+    # Lookbehind on .!? avoids splitting on decimal numbers, abbreviations, or mid-sentence periods
     sentences = re.split(r'(?<=[.!?])\s+', text)
     return [s.strip() for s in sentences if s.strip()]
 
@@ -111,7 +122,7 @@ def aggregate(values: List[Optional[float]], name: str) -> Dict[str, float]:
         return result
 
     result[f"{name}_mean"] = float(np.mean(arr))
-    result[f"{name}_std"] = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
+    result[f"{name}_std"] = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0  # ddof=1 for sample std; single-chunk papers return 0 rather than NaN
 
     for p in PERCENTILES:
         result[f"{name}_p{p}"] = float(np.percentile(arr, p))
@@ -169,7 +180,7 @@ def process_paper(path: Path, chunk_size: int, input_dir: Path) -> Dict:
     metrics_all = {m: [] for m in METRICS}
 
     for chunk in chunks:
-        if len(chunk.split()) < 100:
+        if len(chunk.split()) < 100:  # readability formulas are unreliable on very short passages
             continue
 
         m = compute_metrics(chunk)
@@ -209,6 +220,7 @@ def main():
     input_dir = Path(args.input_dir)
 
     files = find_txt_files(input_dir, args.split)
+    # Interleaved stride so each shard gets a representative mix of papers rather than a contiguous block
     files = files[args.shard_idx::args.n_shards]
 
     if args.limit:

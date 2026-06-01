@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Cleans and deduplicates arXiv abstracts from the Semantic Scholar metadata dump.
+Applies text normalization (HTML entities, LaTeX, encoding artifacts), filters
+abstracts that are too short/long, placeholder text, boilerplate, or symbol-heavy,
+then removes exact and near-duplicate abstracts.
+Input:  data/90k_arxiv_metadata_from_semantic_scholar.csv
+Output: cleaned CSV + audit CSV of removed rows.
+"""
 import re
 import html
 import hashlib
@@ -6,18 +14,21 @@ import pandas as pd
 from pathlib import Path
 from difflib import SequenceMatcher
 
-IN_PATH = Path("data\90k_arxiv_metadata_from_semantic_scholar.csv")
-OUT_PATH = Path("data\90k_arxiv_metadata_from_semantic_scholar_cleaned.csv")
-REMOVED_PATH = Path("data\90k_arxiv_metadata_from_semantic_scholar_removed.csv")
+IN_PATH = Path("data/90k_arxiv_metadata_from_semantic_scholar.csv")
+OUT_PATH = Path("data/90k_arxiv_metadata_from_semantic_scholar_cleaned.csv")
+REMOVED_PATH = Path("data/90k_arxiv_metadata_from_semantic_scholar_removed.csv")
 
 MIN_CHARS = 100
 MIN_WORDS = 20
 MIN_ALPHA_CHARS = 30
 MIN_ALPHA_RATIO = 0.50
 MAX_PUNCT_RATIO = 0.30
+# MAX_CHARS / MAX_WORDS are set high enough to catch full-text papers accidentally stored as abstracts
 MAX_CHARS = 5000
 MAX_WORDS = 3000
+# 0.20 is intentionally lenient: highly technical abstracts with many repeated symbols can still pass
 MIN_LEXICAL_DIVERSITY = 0.20
+# 0.95 rather than 1.0 so near-identical abstracts with minor whitespace edits are still caught
 NEAR_DUP_THRESHOLD = 0.95
 
 PLACEHOLDERS = {
@@ -59,6 +70,7 @@ def clean_text(x):
     # Remove common broken encoding artifacts
     x = x.replace("ï»¿", " ").replace("Ã©", "é").replace("Ã¨", "è")
     x = x.replace("Ã¶", "ö").replace("Ã¼", "ü").replace("Ã¤", "ä")
+    # The first two replace targets look identical but are distinct mojibake: one decodes to en-dash (U+2013), the other to em-dash (U+2014).
     x = x.replace("â€“", "-").replace("â€”", "-").replace("â€˜", "'").replace("â€™", "'")
     x = x.replace("â€œ", '"').replace("â€", '"')
 
@@ -72,7 +84,7 @@ def clean_text(x):
     x = x.replace("\u2028", " ").replace("\u2029", " ")
     x = x.replace("\n", " ").replace("\r", " ").replace("\t", " ")
 
-    # Remove long formula-like blocks
+    # Minimum 10 chars inside $…$ to avoid stripping single-letter math variables like $x$
     x = re.sub(r"\$[^$]{10,}\$", " ", x)
     x = re.sub(r"\\begin\{[^}]+\}.*?\\end\{[^}]+\}", " ", x, flags=re.DOTALL)
 
@@ -154,6 +166,7 @@ def removal_reason(text, stats):
     if stats["lexical_diversity"] < MIN_LEXICAL_DIVERSITY:
         return "low_lexical_diversity"
 
+    # 0.15 symbol ratio is stricter than the punct_ratio check because it targets non-standard chars specifically
     if stats["symbol_ratio"] > 0.15:
         return "formula_or_symbol_heavy"
 
@@ -173,7 +186,7 @@ def removal_reason(text, stats):
     if low.count("<") + low.count(">") >= 3:
         return "remaining_markup_corruption"
 
-    # many standalone formula fragments / one-character lines collapsed
+    # single-letter token count > 30 indicates the abstract collapsed into a symbol soup from math-heavy papers
     if len(re.findall(r"\b[a-zA-Z]\b", text)) > 30:
         return "many_single_letter_formula_fragments"
 
@@ -233,6 +246,7 @@ print("Removed exact duplicates:", len(removed_exact))
 
 print("Removing near-duplicate abstracts...")
 kept = kept.reset_index(drop=True)
+# 120-char prefix buckets candidates so SequenceMatcher only runs within groups that share the same prefix, avoiding O(n^2) all-pairs comparisons.
 kept["near_dup_key"] = kept["abstract_norm"].str[:120]
 
 seen_by_key = {}

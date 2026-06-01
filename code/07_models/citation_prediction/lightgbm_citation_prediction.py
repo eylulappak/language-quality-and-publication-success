@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Trains and evaluates LightGBM for citation count prediction (threshold: citation_count > 5).
+Uses early stopping on validation AUC. Prints test set accuracy, balanced accuracy, ROC-AUC,
+classification report, confusion matrix, and top-30 features by gain and split importance.
+Input:  data/90k_arxiv_citation_prediction_splits/
+"""
 
 import re
 import numpy as np
@@ -115,6 +121,7 @@ binary_cols = [
     if X_train[col].dropna().nunique() <= 2
 ]
 
+# Scaling binary/dummy columns would change their meaning; tree models are scale-invariant anyway but logistic reg is not
 numeric_cols_to_scale = [
     col for col in X_train.columns
     if col not in binary_cols
@@ -166,7 +173,7 @@ model = LGBMClassifier(
     n_estimators=500,
     learning_rate=0.05,
     num_leaves=31,
-    max_depth=-1,
+    max_depth=-1,  # unlimited depth; tree complexity is controlled by num_leaves instead
 )
 
 model.fit(
@@ -175,7 +182,7 @@ model.fit(
     eval_set=[(X_val_scaled, y_val)],
     eval_metric="auc",
     callbacks=[
-        early_stopping(stopping_rounds=50),
+        early_stopping(stopping_rounds=50),  # 50 rounds of no AUC improvement on val triggers early stop
         log_evaluation(period=50),
     ],
 )

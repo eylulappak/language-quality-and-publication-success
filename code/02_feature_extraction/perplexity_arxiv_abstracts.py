@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Computes GPT-2 perplexity for arXiv abstracts using non-overlapping token windows.
+Designed as a 50-shard SLURM array job; defaults to shard 0 when run locally.
+Non-overlapping windows (step = chunk_size) avoid double-counting token probabilities
+across window boundaries.
+Input:  data/90k_arxiv_metadata_from_semantic_scholar.csv
+Output: one CSV shard per array index in data/abstract_gpt2_ppl_outputs_50shards/
+"""
 import argparse
 import csv
 import math
@@ -87,7 +95,7 @@ def compute_perplexity_for_text(text, tokenizer, model, device, chunk_size, batc
 
         ids = torch.tensor(ids_list, dtype=torch.long)
         labels = ids.clone()
-        labels[0] = -100
+        labels[0] = -100  # first token has no preceding context, so it is masked out of the cross-entropy loss
 
         windows_input.append(ids)
         windows_labels.append(labels)
@@ -113,6 +121,7 @@ def compute_perplexity_for_text(text, tokenizer, model, device, chunk_size, batc
 
         outputs = model(input_ids=input_batch, labels=label_batch)
 
+        # outputs.loss is the mean NLL over non-masked tokens; multiplying back by count recovers the sum for aggregation
         valid_labels = int((label_batch != -100).sum().item())
         batch_nll = float(outputs.loss.item()) * valid_labels
 
@@ -168,6 +177,7 @@ def main():
     if args.max_chars is not None:
         df["abstract"] = df["abstract"].astype(str).str.slice(0, args.max_chars)
 
+    # Interleaved stride so each shard covers the full year/topic range rather than a contiguous block
     shard_df = df.iloc[array_index::num_shards].copy()
 
     print(f"SLURM_ARRAY_TASK_ID: {array_index}")
@@ -183,6 +193,7 @@ def main():
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
 
+    # GPT-2 has no pad token by default; reusing eos_token is the standard workaround for batched inference
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -190,6 +201,7 @@ def main():
     model.to(device)
     model.eval()
 
+    # n_positions is GPT-2's context-length attribute; 1024 is the default for the base model
     max_length = args.max_length or int(getattr(model.config, "n_positions", 1024))
     chunk_size = args.chunk_size or max_length
 

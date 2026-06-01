@@ -1,3 +1,10 @@
+"""
+Selects the best citation threshold and model type using validation set performance.
+Trains logistic regression, LightGBM, and XGBoost for seven binary thresholds
+(0, 1, 5, 10, 20, 50, 100) and reports accuracy, balanced accuracy, and ROC-AUC.
+Input:  data/90k_arxiv_citation_prediction_splits/ train+val sets
+Output: results/model_selection/citation_threshold_model_selection_validation_results.csv
+"""
 import os
 import warnings
 import pandas as pd
@@ -21,6 +28,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 train_df = pd.read_csv(TRAIN_CSV, dtype={"arxiv_id": str})
 val_df = pd.read_csv(VAL_CSV, dtype={"arxiv_id": str})
 
+# Range covers everything from any-citation (>0) to highly-cited (>100) to find the most predictable binarisation
 thresholds = [0, 1, 5, 10, 20, 50, 100]
 
 drop_cols = [
@@ -54,7 +62,7 @@ models = {
         ("model", LGBMClassifier(
             n_estimators=500,
             learning_rate=0.05,
-            num_leaves=31,
+            num_leaves=31,  # default LightGBM value; sufficient for a quick model-selection sweep
             random_state=42,
             class_weight="balanced",
             verbose=-1
@@ -117,6 +125,7 @@ for t in thresholds:
 
 results_df = pd.DataFrame(results)
 
+# ROC-AUC is the primary sort key because it is threshold-agnostic; balanced accuracy breaks ties on imbalanced splits
 results_df = results_df.sort_values(
     by=["val_roc_auc", "val_balanced_accuracy", "val_accuracy"],
     ascending=False

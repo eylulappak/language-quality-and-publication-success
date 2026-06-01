@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 """
-Run Qwen2.5-14B-Instruct-AWQ on merged paper text (.txt) files and write ONE JSON per paper into an output folder.
-
-Input modes:
-  1) --in_txt FILE.txt
-  2) --in_dir DIR --glob "*.txt"
-  3) --list_file FILELIST.txt --start N --end M   (recommended for Slurm arrays)
-
-Output:
-  For each input txt, write:
-    OUT_DIR/<paper_id>.native_like.json
-
-paper_id is derived from filename:
-  1952.earlymt-1.1.json.sections.txt -> 1952.earlymt-1.1
+Runs Qwen2.5-14B-Instruct-AWQ on paper TXT files to predict native-like academic English
+(score 0-10, binary verdict). Prefers vLLM backend for throughput; falls back to transformers.
+Each paper text is token-truncated to fit the model's context window before inference.
+Outputs that contain ERROR markers are re-run on the next invocation instead of being skipped.
+Input:  paper TXT files (not included in submission); three input modes:
+        --in_txt FILE.txt | --in_dir DIR [--glob "*.txt"] | --list_file FILELIST.txt
+Output: one JSON per paper in --out_dir
 """
 
 from __future__ import annotations
@@ -122,7 +116,7 @@ def load_backend(
                 trust_remote_code=True,
                 gpu_memory_utilization=gpu_mem_util,
                 max_model_len=max_model_len,
-                enforce_eager=True,
+                enforce_eager=True,  # disables CUDA graph capture to avoid OOM on long inputs
                 disable_log_stats=True,
                 quantization="awq",
             )
@@ -173,6 +167,7 @@ def load_backend(
             with torch.no_grad():
                 out_ids = model.generate(**inputs, **gen_kwargs)
 
+            # Slice off prompt tokens so only the newly generated response is decoded
             gen_ids = out_ids[0][inputs["input_ids"].shape[-1]:]
             return tok.decode(gen_ids, skip_special_tokens=True)
 
@@ -261,7 +256,7 @@ def write_json_atomic(path: Path, obj: Any) -> None:
     tmp.replace(path)
 
 def is_error_output(obj: dict) -> bool:
-    # Treat as "error" if reasons contains an ERROR marker or confidence is 0 with an error-ish reasons.
+    # Outputs that contain ERROR markers are re-run on the next invocation; the skip logic checks content, not just file existence.
     reasons = obj.get("reasons", [])
     if isinstance(reasons, str):
         reasons = [reasons]
@@ -316,13 +311,13 @@ def process_one_txt(
     text = load_txt(Path(txt_path), max_chars=max_chars)
 
     # ---- truncate by TOKENS to fit model limit ----
-    SAFETY = 64  # leave some buffer
+    SAFETY = 64  # buffer against tokenizer/template overhead that is hard to predict exactly
     header = (
         f"paper_id: {paper_id}\n"
         "Paper text (merged excerpts):\n\n"
     )
 
-    # overhead = tokens for system+header (without the paper body)
+    # overhead is computed dynamically from system prompt + header to leave the right space for the paper body
     base_messages = [
         {"role": "system", "content": system_prompt},  # <-- use system_prompt
         {"role": "user", "content": header},
@@ -372,6 +367,7 @@ def process_one_txt(
             out_obj["verdict"] = clamp_int(obj.get("verdict"), 0, 1, 0)
             out_obj["reasons"] = normalize_reasons(obj.get("reasons"))
 
+            # Minimum 3 reasons is enforced so downstream consumers can always display at least a brief justification
             if len(out_obj["reasons"]) < 3:
                 while len(out_obj["reasons"]) < 3:
                     out_obj["reasons"].append("Insufficiently structured reasons returned.")
@@ -404,7 +400,7 @@ def main() -> None:
     ap.add_argument("--model_path", default="Qwen/Qwen2.5-14B-Instruct-AWQ")
     ap.add_argument("--max_chars", type=int, default=40000)
     ap.add_argument("--max_new_tokens", type=int, default=256)
-    ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument("--temperature", type=float, default=0.0)  # deterministic greedy decoding for reproducibility across runs
     ap.add_argument("--top_p", type=float, default=0.9)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--dtype", type=str, default="float16")

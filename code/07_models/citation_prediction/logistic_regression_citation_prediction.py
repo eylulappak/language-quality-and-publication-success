@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+Trains and evaluates logistic regression (statsmodels GLM) for citation prediction.
+Drops highly correlated features (r > 0.95) before fitting to reduce multicollinearity,
+which inflates standard errors. Reports p-values and odds ratios per feature, plus a
+likelihood-ratio test against a null model.
+Input:  data/90k_arxiv_citation_prediction_splits/
+"""
 
 import numpy as np
 import pandas as pd
@@ -69,6 +76,7 @@ X_train = X_train.replace([np.inf, -np.inf], np.nan)
 X_val = X_val.replace([np.inf, -np.inf], np.nan)
 X_test = X_test.replace([np.inf, -np.inf], np.nan)
 
+# Impute from train-set medians only; applying the same values to val/test prevents data leakage
 medians = X_train.median(numeric_only=True)
 
 X_train = X_train.fillna(medians)
@@ -122,7 +130,8 @@ X_test_scaled[numeric_cols_to_scale] = scaler.transform(
 )
 
 
-# Drop duplicate and highly correlated columns based on train only
+# Removing one column from each highly correlated pair reduces multicollinearity,
+# which would otherwise inflate standard errors and distort p-values in logistic regression.
 X_train_scaled = X_train_scaled.loc[:, ~X_train_scaled.T.duplicated()]
 X_val_scaled = X_val_scaled[X_train_scaled.columns]
 X_test_scaled = X_test_scaled[X_train_scaled.columns]
@@ -150,6 +159,7 @@ else:
     for row, col, corr_val in sorted(high_corr_pairs, key=lambda x: -x[2]):
         print(f"{row:40s} <-> {col:40s} : {corr_val:.6f}")
 
+# Drop the second column of each correlated pair (col) rather than the first (row), preserving the earlier/more interpretable feature
 high_corr_cols = list(set([pair[1] for pair in high_corr_pairs]))
 
 print(f"\nDropping highly correlated columns: {len(high_corr_cols)}")
@@ -181,10 +191,11 @@ else:
 
 
 # Fit logistic regression with statsmodels
-X_train_sm = sm.add_constant(X_train_model, has_constant="add")
+X_train_sm = sm.add_constant(X_train_model, has_constant="add")  # forces an intercept even if the design matrix already contains a constant column
 X_val_sm = sm.add_constant(X_val_scaled, has_constant="add")
 X_test_sm = sm.add_constant(X_test_scaled, has_constant="add")
 
+# Null model uses only an intercept to provide the log-likelihood baseline for the likelihood-ratio test
 null_model = sm.GLM(
     y_train_model,
     np.ones((len(y_train_model), 1)),

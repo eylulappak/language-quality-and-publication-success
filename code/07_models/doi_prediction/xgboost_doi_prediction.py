@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Trains and evaluates XGBoost for DOI presence prediction. Computes scale_pos_weight
+from class counts to handle class imbalance. Uses early stopping on validation AUC.
+Prints test set metrics and top-30 features by gain and split importance.
+Input:  data/90k_arxiv_doi_prediction_splits/
+"""
 
 import re
 import numpy as np
@@ -158,7 +164,7 @@ X_test_scaled.columns = cleaned_feature_names
 
 n_pos = y_train.sum()
 n_neg = len(y_train) - n_pos
-scale_pos_weight = n_neg / n_pos if n_pos > 0 else 1.0
+scale_pos_weight = n_neg / n_pos if n_pos > 0 else 1.0  # XGBoost's built-in way to handle class imbalance, equivalent to overweighting the minority class
 
 print(f"\nscale_pos_weight: {scale_pos_weight:.4f}")
 
@@ -174,8 +180,8 @@ model = XGBClassifier(
     reg_alpha=0.0,
     scale_pos_weight=scale_pos_weight,
     random_state=42,
-    n_jobs=1,
-    tree_method="hist",
+    n_jobs=1,  # single thread ensures deterministic tree construction across platforms
+    tree_method="hist",  # histogram-based algorithm is faster than "exact" on large datasets
     early_stopping_rounds=50,
 )
 

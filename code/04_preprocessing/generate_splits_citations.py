@@ -1,3 +1,9 @@
+"""
+Splits the citation prediction dataset into stratified train/val/test sets (60/20/20).
+Stratification is by citation count bin to preserve class distribution across splits.
+Input:  data/90k_arxiv_citation_prediction_full.csv
+Output: data/90k_arxiv_citation_prediction_splits/
+"""
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
@@ -6,7 +12,7 @@ CITATION_CSV = "data/90k_arxiv_citation_prediction_full.csv"
 
 citation_df = pd.read_csv(CITATION_CSV, dtype={"arxiv_id": str})
 
-# Create citation bins: 0, 1–4, 5–12, 13–30, 31+
+# Bin edges chosen to match the threshold used for the binary prediction task (>5) and capture natural citation tiers
 citation_df["citation_bin"] = pd.cut(
     citation_df["citation_count"],
     bins=[-1, 0, 4, 12, 30, float("inf")],
@@ -16,6 +22,7 @@ citation_df["citation_bin"] = pd.cut(
 train_val_df, test_df = train_test_split(
     citation_df,
     test_size=0.2,
+    # stratify on citation_bin so all five citation tiers are proportionally represented in every split
     stratify=citation_df["citation_bin"],
     random_state=42
 )

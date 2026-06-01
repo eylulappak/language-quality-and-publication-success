@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+EDA and correlation study for the publication success dataset. Computes descriptive
+statistics, Mann-Whitney U group difference tests, and Spearman correlations for all
+feature groups against citation count and DOI presence. Produces distribution plots,
+boxplots by group, and Spearman heatmaps.
+Inputs:  data/90k_arxiv_citation_prediction_full.csv, data/90k_arxiv_doi_prediction_full.csv
+Output:  results/eda_publication_success_outputs/
+"""
 
 import os
 import re
@@ -27,6 +35,7 @@ DOI_INPUT_PATH = "data/90k_arxiv_doi_prediction_full.csv"
 
 OUTPUT_DIR = Path("results/eda_publication_success_outputs")
 
+# 5 was selected as the binary citation threshold based on the model selection experiment in code/06_model_selection/
 CITATION_THRESHOLD = 5
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -223,6 +232,7 @@ def spearman_correlations(df, features, target_col):
         if valid.sum() < 10:
             continue
 
+        # Spearman rather than Pearson because many features (e.g. citation count, h-index) are heavily skewed
         rho, p = spearmanr(x[valid], target[valid])
 
         rows.append({
@@ -430,6 +440,7 @@ def plot_correlation_heatmap(df, features, out_path, title):
     if len(selected) < 2:
         return
 
+    # Spearman correlation is rank-based and robust to the non-normal distributions of linguistic scores
     corr = df[selected].apply(pd.to_numeric, errors="coerce").corr(method="spearman")
 
     plt.figure(figsize=(max(8, len(selected) * 0.45), max(6, len(selected) * 0.4)))
@@ -636,8 +647,7 @@ CITATION_PUBLICATION_METADATA_FEATURES = (
 )
 
 # For DOI prediction / DOI-related EDA:
-# exclude publication type, indexing, and publication source features
-# to avoid information leakage.
+# publication type, venue, and indexing flags are determined after DOI assignment, so they are excluded to avoid leakage.
 DOI_PUBLICATION_METADATA_FEATURES = existing(["reference_count"], df)
 
 COMMON_FEATURE_GROUPS = {

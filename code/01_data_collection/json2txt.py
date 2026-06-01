@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Converts paper JSON files (produced by pdf2txt_with_fitz.py) to clean plain-text files.
+Extracts text and section headers, strips the references section, repairs mid-word
+hyphenated line breaks from PDF extraction, and joins paragraph lines into single lines.
+Three modes: single file (--in_json), directory glob (--in_dir), or list file (--list_file).
+Input:  paper JSON files from pdf2txt_with_fitz.py (not included in submission)
+Output: one .txt per paper in --out_dir
+"""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +15,7 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
+# Figures, tables, captions, and footnotes are excluded as they add noise to language-quality features
 KEEP_CLASSES = {"section-header", "text"}
 
 REFERENCES_HEADER_RE = re.compile(
@@ -57,7 +66,8 @@ def repair_hyphenated_lines(items: List[Tuple[str, str]]) -> List[Tuple[str, str
             next_text, next_class = items[i + 1]
             next_text = normalize_line_text(next_text)
 
-            # only merge split words across lines when both are normal text
+            # Only merge across lines when both are plain text (not headers) and the
+            # next fragment starts lowercase — a capital letter signals a new sentence, not a mid-word break.
             if current_class != "text" or next_class != "text":
                 break
 
@@ -161,6 +171,7 @@ def extract_lines(json_path: Path) -> List[str]:
             if ignore_mode:
                 break
 
+        # break out of the outer page loop so no page after the references section is processed
         if ignore_mode:
             break
 
@@ -186,6 +197,7 @@ def process_one(in_path: Path, out_dir: Path, overwrite: bool = False) -> bool:
         for line in lines:
             f.write(line + "\n")
 
+    # atomic rename so a partial write never leaves a corrupt output file visible to downstream scripts
     tmp.replace(out_path)
     return True
 

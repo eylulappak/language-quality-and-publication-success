@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+Draws a stratified 90k sample (45k with DOI, 45k without) from the full arXiv metadata.
+Stratifies by publication year, citation count bin, and research field using proportional
+allocation with largest-remainder rounding to guarantee the allocation sums exactly to target.
+Input:  data/full_arxiv_before_sampling.csv
+Output: data/arxiv_metadata_stratified_90k.csv
+"""
 
 import numpy as np
 import pandas as pd
@@ -7,8 +14,8 @@ from pathlib import Path
 # =========================
 # Configuration
 # =========================
-INPUT_CSV = "data\\full_arxiv_before_sampling.csv"
-OUT_SAMPLE = "data\\arxiv_metadata_stratified_90k.csv"
+INPUT_CSV = "data/full_arxiv_before_sampling.csv"
+OUT_SAMPLE = "data/arxiv_metadata_stratified_90k.csv"
 
 RANDOM_SEED = 42
 
@@ -34,7 +41,7 @@ N_CIT_BINS = 5
 
 # Outlier handling for citation binning
 # Upper cap = Q3 + multiplier * IQR, computed on positive citation counts only
-CIT_IQR_MULTIPLIER = 3.0
+CIT_IQR_MULTIPLIER = 3.0  # extreme outliers are capped before binning to prevent one very-high-citation stratum from dominating
 
 
 # =========================
@@ -98,6 +105,7 @@ def make_quantile_bins(series, n_bins, is_integer=False, zero_special=False):
     s = pd.to_numeric(series, errors="coerce").dropna()
 
     if zero_special:
+        # 0-citation papers are common enough to form their own stratum; quantile bins are computed only on positive values.
         positive = s[s > 0]
         if positive.empty:
             raise ValueError("No positive values available to form citation bins.")
@@ -190,6 +198,9 @@ def proportional_allocation(capacities, target):
     remaining_target = int(target)
     remaining_caps = capacities.copy()
 
+    # Iterative floor + largest-remainder pass: each iteration floors the fractional allocation,
+    # then assigns leftover slots to strata with the largest fractional remainders, guaranteeing
+    # the total sums exactly to `target` without rounding drift.
     while remaining_target > 0:
         positive = remaining_caps[remaining_caps > 0]
         if positive.empty:
@@ -291,7 +302,7 @@ def main():
     df = df[df["doi_bin"].isin([0, 1])].copy()
     df["doi_bin"] = df["doi_bin"].astype(int)
 
-    # Keep years <= 2021, >= 2005
+    # 2005–2021 is chosen since arXiv started in 1991 but had very low volume before the mid-2000s, and papers after 2021 are excluded to reduce the effects of LLM-assisted writing tools.
     df = df[
         df[year_col].notna()
         & (df[year_col] <= 2021)
@@ -398,8 +409,10 @@ def main():
     sample_df = pd.concat(sample_parts, axis=0).copy()
     sample_df["__source_index"] = sample_df.index
 
+    # Final shuffle so DOI=0 and DOI=1 rows are interleaved rather than sorted by group
     sample_df = sample_df.sample(frac=1, random_state=RANDOM_SEED).reset_index(drop=True)
 
+    # Hard checks: the proportional allocator must produce exactly 45k per DOI class and no duplicate source rows
     assert len(sample_df) == SAMPLE_SIZE
     assert sample_df["doi_bin"].value_counts().to_dict().get(0, 0) == SAMPLE_PER_DOI
     assert sample_df["doi_bin"].value_counts().to_dict().get(1, 0) == SAMPLE_PER_DOI

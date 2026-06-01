@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Trains and evaluates LightGBM for DOI presence prediction. Uses early stopping on
+validation AUC. Prints test set accuracy, balanced accuracy, ROC-AUC, classification
+report, confusion matrix, and top-30 features by gain and split importance.
+Input:  data/90k_arxiv_doi_prediction_splits/
+"""
 
 import re
 import numpy as np
@@ -97,6 +103,7 @@ binary_cols = [
     if X_train[col].dropna().nunique() <= 2
 ]
 
+# Binary/dummy features are excluded from scaling to preserve their 0/1 semantics
 numeric_cols_to_scale = [
     col for col in X_train.columns
     if col not in binary_cols
@@ -189,6 +196,7 @@ print(confusion_matrix(y_test, y_pred))
 
 feature_importance = pd.DataFrame({
     "feature": X_train_scaled.columns,
+    # gain measures total information gain; split counts how often the feature is used — both together give a fuller picture
     "gain_importance": model.booster_.feature_importance(
         importance_type="gain"
     ),

@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Preprocesses the merged 90k arXiv dataset for citation and DOI prediction.
+Handles column renaming, type coercion, categorical grouping, feature engineering
+(log transforms, ratios), missing value imputation, and one-hot encoding.
+Produces separate encoded CSVs for each prediction task.
+Input:  data/90k_arxiv_citation_prediction_full.csv
+Output: data/preprocessed_90k_classifiers/
+"""
 
 import os
 import numpy as np
@@ -71,6 +79,7 @@ def clean_venue(data):
     data["venue"] = data["venue"].fillna("Missing")
     counts = data["venue"].value_counts(dropna=False)
 
+    # 100-occurrence threshold keeps frequent venues as distinct categories and folds rare ones into "Other" to limit cardinality
     keep_values = set(counts[counts >= 100].index)
     keep_values.add("Missing")
     keep_values.add("arXiv.org")
@@ -279,6 +288,7 @@ abstract_readability_cols = [
 
 existing_abs_read_cols = [c for c in abstract_readability_cols if c in df.columns]
 
+# Flag created before imputation so it marks rows where readability was genuinely unavailable, not filled.
 df["abstract_readability_missing"] = (
     df[existing_abs_read_cols].isna().any(axis=1).astype(int)
 )
@@ -311,10 +321,12 @@ for col in df.select_dtypes(include=["object"]).columns:
         df[col] = df[col].fillna("Missing")
 
 
+# Using the current year rather than a fixed constant makes paper_age stay accurate if the script is re-run later
 current_year = pd.Timestamp.now().year
 
 df["words_per_sentence"] = df["n_words"] / df["n_sentences"].replace(0, np.nan)
 df["chars_per_word"] = df["n_characters"] / df["n_words"].replace(0, np.nan)
+# Log transform compresses the heavy right tail of perplexity; 0 is replaced with NaN to avoid -inf
 df["log_perplexity"] = np.log(df["perplexity"].replace(0, np.nan))
 df["abstract_log_perplexity"] = np.log(
     df["abstract_perplexity"].replace(0, np.nan)
@@ -380,6 +392,8 @@ citation_df = citation_df.drop(
     columns=[c for c in citation_drop_cols if c in citation_df.columns]
 )
 
+# Publication type, indexing, and venue features are excluded for DOI prediction because
+# they are determined after DOI assignment and would cause target leakage.
 doi_drop_cols = [
     "venue",
     "journal_name",
@@ -433,9 +447,10 @@ def one_hot_encode_dataset(data):
         data,
         columns=cols_to_encode,
         dummy_na=False,
-        drop_first=True,
+        drop_first=True,  # drops one dummy per category to avoid perfect multicollinearity
     )
 
+    # pandas get_dummies produces bool columns on newer versions; cast to int for model compatibility
     encoded = encoded.replace({True: 1, False: 0})
 
     return encoded

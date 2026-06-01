@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+Systematic ablation study for DOI presence prediction (XGBoost). Tests 23 configurations
+mirroring the citation ablation design but without publication/indexing metadata (excluded
+to prevent DOI leakage). full_features uses all non-target columns instead of combining
+named groups, because the DOI dataset has fewer feature groups and a group union would
+miss one-hot encoded columns.
+Input:  data/90k_arxiv_doi_prediction_splits/
+Output: ablation_doi_prediction_results_xgboost.csv
+"""
 
 import re
 import numpy as np
@@ -151,6 +160,8 @@ main_groups = [
     "linguistic_quality",
 ]
 
+# Uses all non-target columns rather than combining named groups: the group union would
+# miss one-hot encoded columns absent from the explicitly named feature group lists.
 full_features = [
     c for c in train_df.columns
     if c not in ["arxiv_id", "corpus_id", "has_doi", "citation_count"]
@@ -239,6 +250,7 @@ for model_name, selected_features in ablation_configs.items():
     X_val = X_val.replace([np.inf, -np.inf], np.nan)
     X_test = X_test.replace([np.inf, -np.inf], np.nan)
 
+    # Recompute medians per ablation config because the feature set changes each iteration
     medians = X_train.median(numeric_only=True)
 
     X_train = X_train.fillna(medians)
@@ -343,6 +355,7 @@ full_bal_acc = results_df.loc[
     "balanced_accuracy"
 ].iloc[0]
 
+# Negative delta means the ablation model is worse than the full model — shows the contribution of the removed group
 results_df["delta_roc_auc_vs_full"] = results_df["roc_auc"] - full_auc
 results_df["delta_bal_acc_vs_full"] = results_df["balanced_accuracy"] - full_bal_acc
 

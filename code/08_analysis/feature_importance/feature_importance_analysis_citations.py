@@ -1,3 +1,10 @@
+"""
+Analyses feature importance for citation prediction across five sources (XGBoost gain/split,
+LightGBM gain/split, logistic regression). Computes rank-weighted scores to find features
+and feature groups that are consistently important. Hardcoded top-30 lists are from prior
+model runs.
+Output: results/feature_importance_plots/
+"""
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -275,6 +282,7 @@ for source, features in sources.items():
 
     for rank, feature in enumerate(features, start=1):
         clean_feature = feature.replace(" ", "_")
+        # rank_score = n+1−rank so the top feature gets the highest score (e.g. 30 for a 30-item list)
         rank_score = n - rank + 1
 
         rows.append({
@@ -293,6 +301,7 @@ df = pd.DataFrame(rows)
 # 5. Rank and frequency summaries
 # ============================================================
 
+# Sort by frequency first so features appearing in all 5 sources float to the top regardless of rank
 feature_summary = (
     df.groupby("feature")
       .agg(
@@ -397,6 +406,7 @@ main_group_order = [
     "G. Linguistic quality"
 ]
 
+# max-rank-score aggregation: each group's score = the rank of its single best feature, making groups comparable regardless of size
 main_max_scores = (
     df[df["main_group"].isin(main_group_order)]
     .groupby(["main_group", "source"])["rank_score"]

@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+Trains and evaluates logistic regression (statsmodels GLM) for DOI presence prediction.
+Drops highly correlated features (r > 0.95) before fitting to reduce multicollinearity,
+which inflates standard errors. Reports p-values and odds ratios per feature, plus a
+likelihood-ratio test against a null model.
+Input:  data/90k_arxiv_doi_prediction_splits/
+"""
 
 import numpy as np
 import pandas as pd
@@ -121,7 +128,9 @@ X_test_scaled[numeric_cols_to_scale] = scaler.transform(
 )
 
 
-# Drop duplicate and highly correlated columns based on train only
+# Removing one column from each highly correlated pair reduces multicollinearity,
+# which would otherwise inflate standard errors and distort p-values in logistic regression.
+# T.duplicated() removes exact column duplicates first; the r>0.95 pass below handles near-duplicates
 X_train_scaled = X_train_scaled.loc[:, ~X_train_scaled.T.duplicated()]
 X_val_scaled = X_val_scaled[X_train_scaled.columns]
 X_test_scaled = X_test_scaled[X_train_scaled.columns]
@@ -179,7 +188,7 @@ else:
     y_train_model = y_train
 
 
-X_train_sm = sm.add_constant(X_train_model, has_constant="add")
+X_train_sm = sm.add_constant(X_train_model, has_constant="add")  # forces an intercept even if the design matrix already contains a constant column
 X_val_sm = sm.add_constant(X_val_scaled, has_constant="add")
 X_test_sm = sm.add_constant(X_test_scaled, has_constant="add")
 
@@ -281,6 +290,7 @@ print(
 
 lr_stat = 2 * (model.llf - null_model.llf)
 lr_df = model.df_model
+# chi2.sf is the survival function (1 - CDF), giving the p-value directly without needing 1 - chi2.cdf
 lr_pvalue = chi2.sf(lr_stat, lr_df)
 
 print("\nANOVA-style likelihood ratio test:")

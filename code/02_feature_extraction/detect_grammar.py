@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Detects grammar errors in paper TXT files using a T5-based GEC model (unbabel/gec-t5-small).
+A correction is counted as a grammar edit only when it changes grammatically meaningful
+content — not formatting, hyphenation, or citation artifacts. Supports single-file mode
+and sharded batch mode.
+Input:  paper TXT files (not included in submission)
+Output: JSON per paper with grammar_edits count and errors_per_sentence rate
+"""
 
 import argparse
 import json
@@ -11,7 +19,7 @@ import spacy
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 
-MODEL_NAME = "google-t5/t5-base"
+MODEL_NAME = "unbabel/gec-t5-small"
 
 nlp = spacy.blank("en")
 nlp.add_pipe("sentencizer")
@@ -43,6 +51,7 @@ def correct_sentences(sentences, batch_size):
     for i in range(0, len(prompts), batch_size):
         batch = prompts[i:i + batch_size]
 
+        # 256 tokens matches the model's training context; longer sentences are truncated rather than rejected
         inputs = tokenizer(
             batch,
             return_tensors="pt",
@@ -55,7 +64,7 @@ def correct_sentences(sentences, batch_size):
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=128,
-                num_beams=1,
+                num_beams=1,  # greedy decoding for speed; beam search is not needed for an edit-detection proxy
                 do_sample=False
             )
 
@@ -76,8 +85,8 @@ def strip_year_citations(text: str) -> str:
 
 
 def only_linebreak_hyphenation_change(original: str, corrected: str) -> bool:
-    # Only apply this rule when the source sentence had line breaks,
-    # since we want to ignore PDF extraction artifacts, not real hyphen edits.
+    # The `\n not in original` guard ensures this rule only suppresses changes caused by
+    # PDF line-break artifacts, not genuine hyphen edits in clean text.
     if "\n" not in original:
         return False
 
@@ -192,6 +201,8 @@ def normalize_for_compare(text: str) -> str:
 
 
 def only_non_grammatical_change(original: str, corrected: str) -> bool:
+    # Each branch catches a different class of false positives: formatting noise, citation
+    # removal, math symbol variants, single-token semantic swaps, and notation differences.
     o_norm = normalize_for_compare(original)
     c_norm = normalize_for_compare(corrected)
 
@@ -273,7 +284,8 @@ def is_name_or_term_hallucination(original: str, corrected: str) -> bool:
     a, b = changed[0]
     sim = SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
-    # likely hallucinated proper name / technical term, not grammar
+    # Threshold (0.72 similarity, min length 6) catches model hallucinations of proper nouns /
+    # technical terms while still allowing genuine short-word grammar corrections to pass through.
     if len(a) >= 6 and len(b) >= 6 and sim >= 0.72:
         return True
 
@@ -287,11 +299,11 @@ def bad_generation(original: str, corrected: str) -> bool:
     if not c:
         return True
 
-    # too short relative to original -> likely truncated
+    # 0.85 lower bound allows minor deletions; anything shorter is almost certainly a truncated generation
     if len(c) < 0.85 * len(o):
         return True
 
-    # too long relative to original -> likely drift / hallucination
+    # 1.8 upper bound catches repetition loops; the T5-small GEC model is prone to them on unusual inputs
     if len(c) > 1.8 * len(o):
         return True
 
@@ -324,6 +336,7 @@ def count_edits(original: str, corrected: str) -> int:
 def limit_sentences_evenly(sentences, max_sentences):
     if max_sentences is None or len(sentences) <= max_sentences:
         return sentences
+    # Uniform stride sampling rather than head-truncation keeps sentences from the full paper body
     step = len(sentences) / max_sentences
     return [sentences[int(i * step)] for i in range(max_sentences)]
 

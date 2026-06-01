@@ -1,3 +1,9 @@
+"""
+Selects the best model type for DOI presence prediction. Trains logistic regression,
+LightGBM, and XGBoost and reports validation accuracy, balanced accuracy, and ROC-AUC.
+Input:  data/90k_arxiv_doi_prediction_splits/ train+val sets
+Output: results/model_selection/doi_model_selection_validation_results.csv
+"""
 import os
 import warnings
 import pandas as pd
@@ -46,7 +52,7 @@ models = {
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler", StandardScaler()),
         ("model", LogisticRegression(
-            max_iter=2000,
+            max_iter=2000,  # increased from the default 100 because convergence is slow on the large feature set
             class_weight="balanced",
             random_state=42
         ))
@@ -70,7 +76,7 @@ models = {
             n_estimators=500,
             learning_rate=0.05,
             max_depth=6,
-            subsample=0.8,
+            subsample=0.8,  # row subsampling reduces overfitting on large datasets
             colsample_bytree=0.8,
             eval_metric="logloss",
             random_state=42,
@@ -115,6 +121,7 @@ for model_name, model in models.items():
 
 results_df = pd.DataFrame(results)
 
+# ROC-AUC is the primary sort key because it is threshold-agnostic; balanced accuracy breaks ties
 results_df = results_df.sort_values(
     by=["val_roc_auc", "val_balanced_accuracy", "val_accuracy"],
     ascending=False
