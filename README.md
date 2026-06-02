@@ -27,7 +27,7 @@ See [HANDBOOK.pdf](HANDBOOK.pdf) for full installation notes (GPU/CUDA setup, op
 The thesis PDF is located at:
 
 ```
-thesis/thesis.pdf
+thesis/UKPThesis.pdf
 ```
 
 ---
