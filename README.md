@@ -18,7 +18,7 @@ source .venv/bin/activate        # Linux/macOS
 pip install -r requirements.txt
 ```
 
-See [HANDBOOK.md](HANDBOOK.md) for full installation notes (GPU/CUDA setup, optional packages) and step-by-step execution instructions.
+See [HANDBOOK.pdf](HANDBOOK.pdf) for full installation notes (GPU/CUDA setup, optional packages) and step-by-step execution instructions.
 
 ---
 
@@ -47,21 +47,6 @@ language-quality-and-publication-success/
 
 ---
 
-## Datasets
-
-| File | Description |
-|---|---|
-| `data/full_arxiv_before_sampling.csv` | Full arXiv metadata pool before stratified sampling |
-| `data/90k_arxiv_metadata_from_semantic_scholar.csv` | 90k sampled papers with Semantic Scholar metadata and abstracts |
-| `data/90k_arxiv_citation_prediction_full.csv` | Fully merged dataset for citation count prediction (all features) |
-| `data/90k_arxiv_doi_prediction_full.csv` | Fully merged dataset for DOI presence prediction (all features) |
-| `data/200-paper-benchmark_validation_of_linguistic_features.csv` | 200-paper benchmark with ground-truth labels and computed features, used for feature validation |
-| `data/90k_arxiv_citation_prediction_splits/` | Train / validation / test splits for citation prediction |
-| `data/90k_arxiv_doi_prediction_splits/` | Train / validation / test splits for DOI prediction |
-| `data/200-paper-benchmark/` | Raw PDFs, JSONs, TXTs, grammar outputs, and LLM (Qwen) outputs for the 200-paper benchmark |
-
----
-
 ## Reproducing the Main Results
 
 To reproduce the experiments reported in the thesis:
@@ -72,7 +57,7 @@ To reproduce the experiments reported in the thesis:
 4. Run the final model scripts in `code/07_models/`
 5. Run the ablation and feature importance analyses in `code/08_analysis/`
 
-Detailed instructions are provided in [HANDBOOK.md](HANDBOOK.md).
+Detailed instructions are provided in [HANDBOOK.pdf](HANDBOOK.pdf).
 
 ---
 
@@ -91,4 +76,4 @@ All scripts required to reproduce the feature extraction process are included.
 
 ## Execution
 
-See [HANDBOOK.md](HANDBOOK.md) for source code descriptions, scripts-by-experiment mapping, step-by-step execution instructions, and runtime requirements.
+See [HANDBOOK.pdf](HANDBOOK.pdf) for data and source code descriptions, step-by-step execution instructions, and runtime requirements.

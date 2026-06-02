@@ -105,7 +105,55 @@ language-quality-and-publication-success/
 ├── README.md                        # This file
 └── HANDBOOK.pdf               # Step-by-step execution instructions
 ```
+---
 
+## Datasets
+
+| File | Description |
+|---|---|
+| `data/full_arxiv_before_sampling.csv` | Full arXiv metadata pool before stratified sampling |
+| `data/90k_arxiv_metadata_from_semantic_scholar.csv` | 90k arXiv paper dataset containing metadata and abstracts collected from from Semantic Scholar |
+| `data/90k_arxiv_citation_prediction_full.csv` | Final dataset used for citation count prediction experiments. |
+| `data/90k_arxiv_doi_prediction_full.csv` | Final dataset used for DOI presence prediction experiments. |
+| `data/200-paper-benchmark_validation_of_linguistic_features.csv` | 200-paper benchmark with ground-truth labels and computed linguistic features, used for feature validation |
+| `data/90k_arxiv_citation_prediction_splits/` | Train / validation / test splits for citation count prediction |
+| `data/90k_arxiv_doi_prediction_splits/` | Train / validation / test splits for DOI presence prediction |
+| `data/200-paper-benchmark/` | Benchmark dataset used for validating language quality measures and evaluating native-like language classification. |
+
+The prediction datasets contain the feature groups described in the thesis:
+
+- Temporal features
+- Text length and structural features
+- Publication and indexing metadata
+- Field and discipline features
+- Author impact features
+- Linguistic quality features
+
+The exact feature definitions, preprocessing procedures, and target variable construction are described in the Methodology chapter of the thesis.
+
+### 200-Paper Benchmark Files
+
+The `data/200-paper-benchmark/` directory contains:
+
+- Original paper PDFs
+- Extracted JSON representations
+- Plain-text paper files
+- Grammar detection outputs
+- Native-like language classification outputs
+
+---
+
+## Results
+
+The `results/` directory contains generated outputs used in the thesis, including:
+
+- Exploratory analyses
+- Correlation analyses
+- Validation results
+- Model selection results
+- Ablation study results
+- Feature importance analyses
+- Figures and plots
 ---
 
 ## Source Code
