@@ -138,8 +138,6 @@ The `data/200-paper-benchmark/` directory contains:
 - Original paper PDFs
 - Extracted JSON representations
 - Plain-text paper files
-- Grammar detection outputs
-- Native-like language classification outputs
 
 ---
 
