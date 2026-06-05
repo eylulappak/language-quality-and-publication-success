@@ -72,7 +72,7 @@ language-quality-and-publication-success/
 │   ├── 90k_arxiv_metadata_from_semantic_scholar.csv
 │   ├── 90k_arxiv_citation_prediction_full.csv
 │   ├── 90k_arxiv_doi_prediction_full.csv
-│   ├── 200-paper-benchmark_validation_of_linguistic_features.csv
+│   ├── 200-paper-benchmark_with_linguistic_features.csv
 │   ├── 90k_arxiv_citation_prediction_splits/
 │   │   ├── 90k_arxiv_citation_prediction_train.csv
 │   │   ├── 90k_arxiv_citation_prediction_val.csv
@@ -115,7 +115,7 @@ language-quality-and-publication-success/
 | `data/90k_arxiv_metadata_from_semantic_scholar.csv` | 90k arXiv paper dataset containing metadata and abstracts collected from from Semantic Scholar |
 | `data/90k_arxiv_citation_prediction_full.csv` | Final dataset used for citation count prediction experiments. |
 | `data/90k_arxiv_doi_prediction_full.csv` | Final dataset used for DOI presence prediction experiments. |
-| `data/200-paper-benchmark_validation_of_linguistic_features.csv` | 200-paper benchmark with ground-truth labels and computed linguistic features, used for feature validation |
+| `data/200-paper-benchmark_with_linguistic_features.csv` | 200-paper benchmark with ground-truth labels and computed linguistic features, used for feature validation |
 | `data/90k_arxiv_citation_prediction_splits/` | Train / validation / test splits for citation count prediction |
 | `data/90k_arxiv_doi_prediction_splits/` | Train / validation / test splits for DOI presence prediction |
 | `data/200-paper-benchmark/` | Benchmark dataset used for validating language quality measures and evaluating native-like language classification. |
