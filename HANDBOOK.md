@@ -83,11 +83,11 @@ language-quality-and-publication-success/
 │   │   └── 90k_arxiv_doi_prediction_test.csv
 │   └── 200-paper-benchmark/         # 200 papers used for zero-shot prompting and feature validation
 │       ├── dev/
-│       │   ├── native-like/         # 50 native-like papers (json, txt, grammar, qwen outputs)
+│       │   ├── native-like/         # 50 native-like papers 
 │       │   └── non-native-like/     # 50 non-native-like papers
 │       └── test/
-│           ├── native-like/         # 50 native-like papers (2 batches)
-│           └── non-native-like/     # 50 non-native-like papers (2 batches)
+│           ├── native-like/         # 50 native-like papers 
+│           └── non-native-like/     # 50 non-native-like papers 
 │
 ├── code/                            # All source code (see below)
 │   ├── 01_data_collection/
