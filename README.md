@@ -22,22 +22,11 @@ See [HANDBOOK.pdf](HANDBOOK.pdf) for full installation notes (GPU/CUDA setup, op
 
 ---
 
-## Thesis
-
-The thesis PDF is located at:
-
-```
-thesis/UKPThesis.pdf
-```
-
----
-
 ## Folder Structure
 
 ```
 language-quality-and-publication-success/
 │
-├── thesis/          # Thesis PDF and source files
 ├── data/            # Datasets used in the thesis
 ├── code/            # Source code
 ├── results/         # Experimental results and generated outputs
